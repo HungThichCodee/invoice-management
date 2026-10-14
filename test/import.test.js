@@ -1,0 +1,10 @@
+'use strict';
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const os=require('node:os');
+const path=require('node:path');
+const ExcelJS=require('exceljs');
+const {parseWpsWorkbook,HEADERS}=require('../src/main/import');
+const {readImportFile,mappedRows}=require('../src/main/importer');
+test('đọc và kiểm tra hai sheet WPS mà không ghi dữ liệu',async t=>{const dir=fs.mkdtempSync(path.join(os.tmpdir(),'wps-import-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));const file=path.join(dir,'old.xlsx'),wb=new ExcelJS.Workbook();for(const [name,head] of Object.entries(HEADERS))wb.addWorksheet(name).addRow(head);wb.getWorksheet('FM_HoaDon').addRow(['HD-1','2026-01-10','Khách A','0901','Địa chỉ','2026-02-10',500000,'',JSON.stringify([{name:'Thuê xe',unit:'ngày',qty:1,price:500000}]),'R-1']);wb.getWorksheet('FM_ThuTien').addRow(['PT-1','HD-1','2026-01-11',200000,'Tiền mặt','','R-2']);await wb.xlsx.writeFile(file);const data=await parseWpsWorkbook(file);assert.equal(data.invoices.length,1);assert.equal(data.payments.length,1);assert.equal(data.invoices[0].total,500000);assert.equal(data.payments[0].amount,200000);const loaded=readImportFile(file),invoiceSheet=loaded.sheets.find(x=>x.name==='FM_HoaDon'),paymentSheet=loaded.sheets.find(x=>x.name==='FM_ThuTien'),mappedInvoice=mappedRows(loaded.raw,invoiceSheet.name,invoiceSheet.guess,'wps'),mappedPayment=mappedRows(loaded.raw,paymentSheet.name,paymentSheet.guess,'payments');assert.equal(mappedInvoice.invoices[0].total,500000);assert.equal(mappedPayment.payments[0].amount,200000);});

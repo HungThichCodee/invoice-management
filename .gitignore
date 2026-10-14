@@ -1,0 +1,8 @@
+/doc.md
+/WPS-HoaDon-NhieuKhach-NhieuHoaDon/
+/node_modules/
+/release/
+/data-test/
+*.db
+*.db-shm
+*.db-wal
