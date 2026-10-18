@@ -1,0 +1,174 @@
+.invoice-head {
+  margin-bottom: 14px;
+}
+.invoice-head h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.invoice-count {
+  font-size: 11px;
+  letter-spacing: 0;
+  font-weight: 700;
+  border-radius: 20px;
+  background: var(--pale);
+  color: var(--muted);
+  padding: 5px 9px;
+}
+.invoice-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.invoice-tab {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 37px;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--text);
+  font-weight: 600;
+}
+.invoice-tab.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+.invoice-tab span {
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: var(--pale);
+  color: var(--text);
+  font-size: 11px;
+}
+.invoice-tab.active span {
+  background: white;
+  color: var(--primary);
+}
+.invoice-list-card {
+  padding: 0;
+  overflow: hidden;
+}
+.invoice-filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.6fr) minmax(150px, 0.85fr) minmax(
+      200px,
+      1fr
+    ) 36px auto;
+  align-items: center;
+  gap: 10px;
+  padding: 15px;
+}
+.invoice-search,
+.invoice-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 39px;
+  padding: 0 11px;
+  border-radius: 10px;
+  background: var(--pale);
+  color: var(--muted);
+}
+.invoice-search .icon,
+.invoice-select .icon {
+  font-size: 18px;
+  flex: none;
+}
+.invoice-search input,
+.invoice-select select {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  padding: 8px 0;
+}
+.invoice-search:focus-within,
+.invoice-select:focus-within {
+  box-shadow: 0 0 0 2px #2563eb50;
+}
+.invoice-filters > .button {
+  padding: 0;
+  min-height: 36px;
+}
+.invoice-filters #selectionCount {
+  justify-self: start;
+  white-space: nowrap;
+}
+.invoice-table {
+  min-width: 1050px;
+}
+.invoice-table th {
+  padding: 11px 8px;
+}
+.invoice-table td {
+  padding: 14px 8px;
+}
+.invoice-table td:first-child,
+.invoice-table th:first-child {
+  padding-left: 17px;
+  width: 32px;
+}
+.invoice-table td:last-child {
+  white-space: nowrap;
+}
+.invoice-table td:last-child .button {
+  margin-right: 3px;
+}
+.invoice-table td:nth-child(2) {
+  white-space: nowrap;
+}
+.invoice-table td:nth-child(3) {
+  white-space: nowrap;
+}
+.invoice-table td:nth-child(8) {
+  min-width: 130px;
+}
+.invoice-table td:nth-child(8) .small {
+  margin-top: 4px;
+}
+.invoice-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 10px 16px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.invoice-pager .pagination {
+  margin: 0;
+  align-items: center;
+}
+@media (max-width: 1250px) {
+  .invoice-filters {
+    grid-template-columns: minmax(220px, 1fr) minmax(150px, 0.65fr) minmax(
+        180px,
+        0.8fr
+      ) 36px;
+  }
+  .invoice-filters #selectionCount {
+    grid-column: 1/-1;
+  }
+}
+@media (max-width: 900px) {
+  .invoice-filters {
+    grid-template-columns: 1fr 1fr 36px;
+  }
+  .invoice-search {
+    grid-column: 1/-1;
+  }
+  .invoice-pager {
+    display: block;
+  }
+  .invoice-pager .pagination {
+    margin-top: 8px;
+  }
+}

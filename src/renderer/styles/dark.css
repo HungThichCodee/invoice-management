@@ -1,0 +1,95 @@
+body.dark {
+  --blue: #a9c7ff;
+  --green: #70e0a5;
+  --red: #ff9993;
+}
+.dark .nav-item:hover,
+.dark .nav-item.active {
+  background: #344568;
+  color: #e9f0ff;
+}
+.dark .settings-menu button.active,
+.dark .settings-menu button:hover {
+  background: #344568;
+  color: #e9f0ff;
+}
+.dark .field input,
+.dark .field select,
+.dark .field textarea,
+.dark .input,
+.dark .filterbar input,
+.dark .filterbar select {
+  background: var(--pale);
+  border-color: var(--line);
+  color: var(--text);
+}
+.dark .settings-document .field input,
+.dark .settings-document .field select {
+  background: var(--white);
+}
+.dark .field input[readonly] {
+  color: var(--muted);
+}
+.dark .date-field {
+  background: var(--pale);
+  border-color: var(--line);
+}
+.dark .summary-box,
+.dark .settings-next {
+  background: var(--pale);
+}
+.dark .card.tint,
+.dark .metric-foot {
+  background: var(--pale);
+  color: var(--muted);
+}
+.dark .button:not(.primary):not(.danger):not(.warning) {
+  background: var(--pale);
+  border-color: var(--line);
+  color: var(--text);
+}
+.dark .button.white {
+  background: var(--white);
+}
+.dark .invoice-tab.active span {
+  background: #eaf0ff;
+  color: #173f9d;
+}
+.dark th,
+.dark .bulk-table th,
+.dark .backup-history th {
+  background: var(--pale);
+  color: var(--muted);
+}
+.dark tr:hover td {
+  background: #303b53;
+}
+.dark .payment-mode.active,
+.dark .bulk-mode.active {
+  background: #344568;
+  border-color: #6284c7;
+}
+.dark .payment-mode.active strong,
+.dark .bulk-mode.active strong {
+  color: #b9d2ff;
+}
+.dark .payment-amount-box input[readonly] {
+  color: var(--text);
+}
+.dark .backup-banner {
+  background: linear-gradient(90deg, #173a31, #23463b);
+}
+.dark .backup-banner-text .small {
+  color: #a8f2c8;
+}
+.dark .backup-note {
+  background: #493a20;
+  color: #ffdda3;
+}
+.dark .bulk-table input[type="number"] {
+  background: var(--white);
+  color: var(--text);
+}
+.dark .bulk-table input[readonly] {
+  background: var(--pale);
+}

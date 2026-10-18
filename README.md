@@ -1,35 +1,34 @@
-# HoaDonXeNang
+# Hóa đơn Xe nâng – ứng dụng Windows offline
 
-Ứng dụng Windows quản lý hóa đơn, phiếu thu và công nợ ngoại tuyến. Dữ liệu lưu trong SQLite ở thư mục do người dùng chọn. App không dùng WPS khi vận hành.
+Ứng dụng Electron lưu hóa đơn, khách hàng, phiếu thu và công nợ trong SQLite trên máy. Giao diện, font và biểu tượng được đóng gói cục bộ. Không cần kết nối mạng khi sử dụng.
 
-## Phát hành cho người dùng
+## Chạy và đóng gói
 
-Chạy `release/HoaDonXeNang_Setup.exe` để cài đặt hoặc `release/HoaDonXeNang_Portable.exe` để chạy bản portable. Máy sử dụng không cần Node.js. Lần đầu mở, app dùng thư mục dữ liệu riêng của Windows; vào **Cài đặt → Chọn thư mục dữ liệu** để chuyển sang vị trí mong muốn, ví dụ `G:\Xe_Nang_Data`. Nên chọn thư mục trống nếu tạo dữ liệu mới. Nếu chọn thư mục đã có `hoadon_xenang.db`, app mở dữ liệu ở đó.
-
-## Dành cho lập trình viên
-
-Yêu cầu Node.js LTS, npm, Windows và công cụ build native phù hợp với Electron. Từ thư mục repo:
+Máy dùng để build cần Node.js, npm và Windows x64. Tại thư mục dự án:
 
 ```powershell
-npm install
-npm run dev
+npm ci
 npm test
-npm run dist
+npm run build
 ```
 
-`npm run build` tạo bản app chưa đóng gói. `npm run dist:portable` và `npm run dist:installer` tạo từng loại. File hoàn chỉnh ở `release/`.
+File phát hành: `release/HoaDonXeNang_Portable.exe`. Có thể chép file này sang máy Windows 10/11 x64 khác để chạy. Máy khách không cần cài Node.js hoặc .NET Runtime. Lần mở đầu, database được tạo trong `%LOCALAPPDATA%\HoaDonXeNang\data`. Bản sao lưu ở thư mục `backup` bên trong thư mục dữ liệu. File xuất mặc định ở thư mục `exports`.
 
-## Cách dùng
+## Sử dụng nhanh
 
-1. Ở **Tạo hóa đơn**, tìm tên hoặc số điện thoại để chọn khách cũ. Thông tin khách tự điền; có thể sao chép mặt hàng từ hóa đơn gần nhất. Nếu khách còn nợ, app hiển thị cảnh báo. Bấm **Lưu hóa đơn** hoặc **Lưu & tạo tiếp cho khách này**.
-2. Ở **Hóa đơn**, tìm, lọc theo trạng thái, xem chi tiết, sửa hoặc xóa hóa đơn chưa có phiếu thu. Bấm **Thu tiền** để ghi nhiều đợt thanh toán; app chặn thu vượt nợ.
-3. Ở **Khách hàng**, mở hồ sơ để xem tổng quan, lịch sử hóa đơn và phiếu thu cùng số dư lũy kế, tuổi nợ và các bộ lọc. Có thể lập hóa đơn mới, thu tiền hàng loạt theo hóa đơn cũ nhất, xuất PDF đối chiếu và Excel riêng cho khách.
-4. Ở **Nhập / Xuất**, chọn file `.xlsx`, `.xls` hoặc `.csv` UTF-8, chọn sheet và ánh xạ cột, kiểm tra trước, chọn cách xử lý trùng rồi xác nhận. App sao lưu trước khi ghi, hiển thị nhật ký và cho hoàn tác lần nhập gần nhất. Nút **Tải file mẫu** tạo workbook mẫu trong thư mục xuất.
-5. Ở **Báo cáo**, chọn năm và chế độ theo tháng/năm. Doanh thu dựa trên ngày lập hóa đơn; đã thu kỳ dựa trên ngày phiếu thu; nợ cuối kỳ là lũy kế đến cuối kỳ.
-6. Ở **Cài đặt**, nhập thông tin người bán và logo, chọn thư mục xuất file, bật chế độ tối. Ở **Sao lưu**, tạo hoặc khôi phục bản sao SQLite.
+1. Vào **Khách hàng** để thêm đối tác.
+2. Vào **Tạo hóa đơn**, chọn khách, nhập từng mặt hàng, số lượng và đơn giá rồi lưu. Chọn **Lưu & Thu tiền ngay** nếu nhận tiền cùng lúc. Trong **Hóa đơn**, lọc theo trạng thái, tháng hoặc khách; chọn các hàng cần xuất PDF/Excel/CSV.
+   Ứng dụng chỉ tạo hóa đơn sau khi bấm **Lưu** và xác nhận. Bấm **Danh sách hóa đơn** hoặc chuyển trang khi đang nhập dở sẽ hiện cảnh báo; chọn **Thoát và bỏ thay đổi** để hủy, dữ liệu chưa lưu sẽ không vào sổ.
+3. Vào **Thu tiền** để lập phiếu thu theo hóa đơn, chọn thu đủ hoặc thu một phần, lọc theo tháng hoặc phương thức thu. Nút in trên mỗi dòng tạo PDF của chính phiếu thu đó. Vào **Công nợ** để xem dư nợ và thu gộp cho một khách; có thể phân bổ từ hóa đơn cũ nhất hoặc nhập số tiền cho từng hóa đơn.
+4. Trên **Tổng quan**, chọn tháng bằng nút lịch, xem hóa đơn cần xử lý và xuất báo cáo tháng ra PDF/Excel. Nhấn **Ctrl+K** để tìm khách hàng; nhập mã hóa đơn rồi nhấn **Enter** để tìm hóa đơn.
+5. Vào **Báo cáo** để xem doanh thu, tiền thu theo tháng/năm. Vào **Nhập / Xuất** để nhập `.xlsx` hoặc `.csv`: xem trước lỗi theo dòng, sửa hoặc bỏ qua dòng lỗi rồi mới lưu. Dòng chi tiết và phiếu thu phụ thuộc hóa đơn bị bỏ cũng được loại cùng; cảnh báo dữ liệu tùy chọn không chặn nhập.
+6. Vào **Sao lưu** để tạo bản sao, khôi phục trực tiếp một bản trong lịch sử hoặc chọn file `.db`. Trước khi khôi phục, ứng dụng yêu cầu xác nhận và tạo bản dự phòng của dữ liệu hiện tại. Số bản lưu tối đa bằng 0 nghĩa là không tự dọn bản cũ. Trong **Cài đặt**, nhập thông tin đơn vị/logo dùng trên PDF, chỉnh tiền tố, độ dài và bộ đếm mã chứng từ; có thể đổi thư mục dữ liệu và thư mục xuất. Khi đổi thư mục dữ liệu, chọn thư mục trống; ứng dụng sao chép dữ liệu hiện tại và giữ lại bản ở vị trí cũ.
 
-App xuất PDF hóa đơn/đối chiếu/báo cáo; Excel chứa sáu sheet (hóa đơn, chi tiết, thu tiền, công nợ, báo cáo theo bộ lọc tháng/năm, thông tin phiên bản/ngày xuất/bộ lọc). CSV có BOM UTF-8 và bảo vệ ô bắt đầu bằng ký tự công thức. File xuất mặc định nằm trong `exports` dưới thư mục dữ liệu.
+Tên đơn vị và logo đã lưu cũng hiển thị trên thanh thương hiệu của ứng dụng. Thay đổi tên có hiệu lực sau khi bấm **Lưu thay đổi cài đặt**; chọn hoặc xóa logo có hiệu lực ngay sau khi xác nhận. Tên và logo được giữ sau khi mở lại ứng dụng.
 
-## Sao lưu và khôi phục
+Số âm bị chặn ở biểu mẫu, IPC và database. Các lệnh ghi database đều nằm trong transaction; nếu một bước thất bại, cả nghiệp vụ sẽ rollback.
+Các thao tác tạo, sửa, xóa và lưu có hộp xác nhận, thông báo kết quả và khóa nút trong lúc xử lý. Form đang nhập dở cũng được cảnh báo khi bấm Hủy, Esc, bấm nền hộp thoại, Back, tải lại hoặc đóng cửa sổ.
 
-App tự sao lưu hằng ngày khi mở và khi đọc dữ liệu, vào `backup` dưới thư mục dữ liệu; giữ 30 file `.db` gần nhất. **Sao lưu ngay** tạo bản thủ công. **Khôi phục từ backup** yêu cầu xác nhận và sao lưu dữ liệu hiện tại trước khi thay thế. Nên đóng mọi bản app khác đang mở cùng database trước khi khôi phục.
+## Giới hạn hiện tại
+
+Ứng dụng không gửi Zalo/SMS và không đồng bộ đám mây. Phiên bản này tạo database mới; không tự chuyển dữ liệu từ ứng dụng cũ.

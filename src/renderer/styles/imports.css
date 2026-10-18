@@ -1,0 +1,114 @@
+.import-stepper {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  margin: 20px 0;
+}
+.import-stepper .step {
+  text-align: center;
+  white-space: nowrap;
+  border-radius: 9px;
+}
+.import-file {
+  min-height: 88px;
+}
+.import-status {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+.import-status-card {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  min-height: 104px;
+  padding: 15px;
+  border-radius: 12px;
+}
+.import-status-card small {
+  font-size: 11px;
+  font-weight: 700;
+}
+.import-status-card strong {
+  font-size: 24px;
+}
+.import-status-card span {
+  font-size: 11px;
+}
+.import-status-card > .icon {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 30px;
+}
+.import-status-card.good {
+  background: #ddf8e8;
+  color: #116329;
+}
+.import-status-card.caution {
+  background: #fff0bb;
+  color: #885000;
+}
+.import-status-card.bad {
+  background: #ffe0e0;
+  color: #a32426;
+}
+.import-counts {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 12px 0 0;
+}
+.import-errors {
+  max-height: 450px;
+}
+.import-errors table {
+  min-width: 680px;
+}
+.import-errors td {
+  font-size: 12px;
+  vertical-align: top;
+}
+.import-errors td:first-child {
+  white-space: nowrap;
+}
+.import-errors td:first-child small {
+  display: block;
+  color: var(--muted);
+}
+.import-errors td .icon {
+  font-size: 16px;
+}
+.import-value {
+  font-variant-numeric: tabular-nums;
+  max-width: 160px;
+  overflow-wrap: anywhere;
+}
+.import-actions {
+  justify-content: flex-end;
+  margin: 20px 0 0;
+}
+.import-actions label {
+  margin-left: auto;
+}
+.dark .import-status-card.good {
+  background: #234c39;
+  color: #b4f2c8;
+}
+.dark .import-status-card.caution {
+  background: #59451f;
+  color: #ffe2a1;
+}
+.dark .import-status-card.bad {
+  background: #522b34;
+  color: #ffb8b8;
+}
+@media (max-width: 1100px) {
+  .import-stepper {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .import-status {
+    grid-template-columns: 1fr;
+  }
+}

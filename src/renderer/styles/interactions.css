@@ -1,0 +1,79 @@
+#confirm-root .overlay {
+  z-index: 90;
+}
+.confirmation {
+  width: min(440px, 100%);
+  padding: 24px;
+}
+.confirmation h2 {
+  margin: 8px 0;
+  font-size: 19px;
+}
+.confirmation p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.confirmation .form-actions {
+  margin-top: 24px;
+  gap: 8px;
+}
+.confirmation-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  color: #1d4ed8;
+  background: #e8edff;
+}
+.confirmation-icon.danger {
+  color: #b42318;
+  background: #fdecec;
+}
+.confirmation-icon .icon {
+  font-size: 25px;
+}
+.button.danger.solid {
+  color: #fff;
+  background: #b42318;
+}
+.button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+  filter: none;
+}
+#toast-root {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 110;
+  pointer-events: none;
+  max-width: min(460px, calc(100vw - 32px));
+}
+#toast-root .toast {
+  position: static;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  width: 100%;
+  line-height: 1.4;
+}
+@media (max-width: 640px) {
+  .confirmation {
+    padding: 20px;
+  }
+  .confirmation .form-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .confirmation .button {
+    white-space: normal;
+    min-height: 44px;
+  }
+  #toast-root {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+  }
+}

@@ -1,0 +1,12 @@
+.client-overview { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.client-overview > div { display: grid; gap: 5px; min-width: 0; padding: 11px 13px; border-radius: 11px; background: var(--pale); }
+.client-overview span { color: var(--muted); font-size: 11px; }
+.client-overview strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.client-debt { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 10px 13px; border-radius: 11px; background: #eaf8ef; color: #166534; font-size: 12px; }
+.client-debt.has-debt { background: #fff1db; color: #9a5800; }
+.client-debt > .icon { flex: none; }
+.client-debt span { flex: 1; }
+.client-debt button { border: 0; background: transparent; color: var(--blue); font-weight: 700; white-space: nowrap; }
+.dark .client-debt { background: #1e493a; color: #98edb5; }
+.dark .client-debt.has-debt { background: #574024; color: #ffda9b; }
+@media (max-width: 850px) { .client-overview { grid-template-columns: 1fr; } }

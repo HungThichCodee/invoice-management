@@ -1,0 +1,84 @@
+.search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 340px;
+  background: var(--pale);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0 9px;
+  gap: 7px;
+}
+.search-wrap > .icon {
+  font-size: 19px;
+  color: var(--muted);
+}
+.top-search {
+  width: 100%;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  padding: 10px 2px;
+  color: var(--text);
+  outline: 0;
+}
+.top-search:focus {
+  outline: 0;
+}
+.search-wrap:focus-within {
+  border-color: #7399ed;
+  box-shadow: 0 0 0 2px #2563eb16;
+}
+.search-wrap kbd {
+  white-space: nowrap;
+  font:
+    11px "Be Vietnam Pro",
+    sans-serif;
+  color: var(--muted);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 1px 5px;
+}
+.search-suggestions {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--white);
+  box-shadow: 0 16px 40px #17203325;
+  padding: 7px;
+}
+.search-caption,
+.search-hint {
+  font-size: 11px;
+  color: var(--muted);
+  padding: 6px 8px;
+}
+.search-suggestions button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  border-radius: 7px;
+  padding: 8px;
+  color: var(--text);
+  text-align: left;
+}
+.search-suggestions button:hover {
+  background: var(--pale);
+}
+.search-suggestions button span,
+.search-empty {
+  font-size: 11px;
+  color: var(--muted);
+}
+.search-empty {
+  padding: 9px;
+}

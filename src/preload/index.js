@@ -1,6 +1,54 @@
-'use strict';
-const { contextBridge, ipcRenderer, webUtils } = require('electron');
-const channels=['snapshot','createInvoice','updateInvoice','deleteInvoice','addPayment','createCustomer','updateCustomer','customerProfile','planBulkPayment','addBulkPayment','reports','dashboard','chooseImportFile','dryRunImport','commitImport','downloadImportErrors','undoImport','downloadTemplate','chooseLogo','saveSettings','chooseDataFolder','chooseExportFolder','openFolder','backup','restore','pdf','print','excel','csv'];
-const api=Object.fromEntries(channels.map(name=>[name,(...args)=>ipcRenderer.invoke(name,...args)]));
-api.pathForFile=file=>webUtils.getPathForFile(file);
-contextBridge.exposeInMainWorld('hoaDon',Object.freeze(api));
+"use strict";
+const { contextBridge, ipcRenderer } = require("electron");
+const names = [
+  "app.ready",
+  "customers.list",
+  "customers.get",
+  "customers.create",
+  "customers.update",
+  "customers.remove",
+  "invoices.list",
+  "invoices.get",
+  "invoices.create",
+  "invoices.update",
+  "invoices.remove",
+  "payments.list",
+  "payments.create",
+  "payments.update",
+  "payments.remove",
+  "debts.allocate",
+  "debts.collect",
+  "reports.dashboard",
+  "reports.activity",
+  "reports.periods",
+  "reports.month",
+  "imports.history",
+  "imports.session",
+  "imports.cancel",
+  "imports.choose",
+  "imports.preview",
+  "imports.updateRow",
+  "imports.skipErrors",
+  "imports.commit",
+  "imports.undo",
+  "exports.csv",
+  "exports.excel",
+  "exports.pdf",
+  "backups.list",
+  "backups.create",
+  "backups.copy",
+  "backups.prune",
+  "backups.restore",
+  "backups.restoreNamed",
+  "settings.get",
+  "settings.update",
+  "settings.chooseFolder",
+  "settings.chooseLogo",
+  "settings.removeLogo",
+  "reminders.copy",
+  "files.openFolder",
+];
+const api = Object.fromEntries(
+  names.map((name) => [name, (value) => ipcRenderer.invoke(name, value)]),
+);
+contextBridge.exposeInMainWorld("invoiceApi", Object.freeze(api));

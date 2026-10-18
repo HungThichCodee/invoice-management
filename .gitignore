@@ -1,8 +1,7 @@
-/doc.md
-/WPS-HoaDon-NhieuKhach-NhieuHoaDon/
-/node_modules/
-/release/
-/data-test/
+node_modules/
+release/
+dist/
 *.db
-*.db-shm
 *.db-wal
+*.db-shm
+*.log

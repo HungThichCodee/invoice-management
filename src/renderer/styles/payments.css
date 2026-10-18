@@ -1,0 +1,128 @@
+.payment-head {
+  margin-bottom: 17px;
+}
+.payment-kpis {
+  gap: 12px;
+}
+.payment-kpi {
+  padding: 16px;
+  min-height: 134px;
+}
+.payment-kpi .metric-icon {
+  width: 31px;
+  height: 31px;
+  border-radius: 8px;
+  margin: 0;
+}
+.payment-kpi .metric-icon .icon {
+  font-size: 18px;
+}
+.payment-kpi .metric-label {
+  font-weight: 600;
+  margin: 0;
+  color: var(--text);
+}
+.payment-kpi .metric {
+  font-size: 21px;
+  white-space: nowrap;
+  margin: 10px 0 6px;
+}
+.payment-kpi .small {
+  font-size: 10px;
+}
+.payment-filters {
+  padding: 15px 16px;
+  margin-bottom: 14px;
+}
+.payment-filter-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.7fr) minmax(175px, 0.8fr) minmax(
+      145px,
+      0.7fr
+    ) auto;
+  gap: 10px;
+  align-items: center;
+}
+.payment-tabs {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-top: 13px;
+}
+.payment-tabs > .small {
+  margin-left: auto;
+}
+.payment-tabs .invoice-tab {
+  min-height: 32px;
+  padding: 5px 10px;
+}
+.payment-table-card {
+  padding: 0;
+  overflow: hidden;
+}
+.payment-table {
+  min-width: 1120px;
+}
+.payment-table th,
+.payment-table td {
+  padding: 12px 9px;
+}
+.payment-table th:first-child,
+.payment-table td:first-child {
+  padding-left: 17px;
+}
+.payment-table .payment-note {
+  max-width: 210px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.payment-table .payment-actions {
+  white-space: nowrap;
+}
+.payment-table .payment-actions .button {
+  margin-right: 3px;
+}
+.payment-table .pill {
+  white-space: nowrap;
+}
+.payment-guidance {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px 15px;
+  background: var(--pale);
+  border-radius: 11px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.payment-guidance .icon {
+  color: var(--primary);
+  font-size: 20px;
+}
+@media (max-width: 1250px) {
+  .payment-filter-row {
+    grid-template-columns: minmax(200px, 1fr) minmax(170px, 0.8fr) minmax(
+        150px,
+        0.7fr
+      );
+  }
+  .payment-filter-row > .button {
+    grid-column: 1/-1;
+    justify-self: start;
+  }
+}
+@media (max-width: 900px) {
+  .payment-filter-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .payment-filter-row .invoice-search {
+    grid-column: 1/-1;
+  }
+  .payment-tabs > .small {
+    width: 100%;
+    margin-left: 0;
+  }
+}

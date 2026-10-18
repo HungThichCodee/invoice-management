@@ -1,50 +1,284 @@
-'use strict';
-const $=id=>document.getElementById(id);
-const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const cash=n=>`${Number(n||0).toLocaleString('vi-VN')} ₫`;
-const vn=d=>d?`${d.slice(8,10)}/${d.slice(5,7)}/${d.slice(0,4)}`:'—';
-const icon=(name,cls='')=>`<svg class="icon ${cls}"><use href="assets/lucide-sprite.svg#${name}"></use></svg>`;
-let state={invoices:[],payments:[],customers:[],settings:{},today:''},editing=null,paying=null,selectedCustomer=null,selectedCustomerTab='all',selectedCustomerRange={from:'',to:''},selectedPeriod=null,selectedCustomerId=null,submitMode='save',busy=false;
-let editingCustomerId=null;
-function toast(message,error=false){$('message').textContent=message;$('message').className=error?'error':'';const el=document.createElement('div');el.className=`toast ${error?'error':''}`;el.textContent=message;$('toastRegion').append(el);setTimeout(()=>el.remove(),5000);}
-async function call(fn,success){try{const r=await fn();if(success)toast(success);return r;}catch(e){toast(e.message||String(e),true);return null;}}
-function setBusy(value){busy=value;document.querySelectorAll('button[type="submit"]').forEach(b=>b.disabled=value);}
-function tab(name){document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===name));$('pageTitle').textContent={dashboard:'Tổng quan',create:'Tạo hóa đơn',invoices:'Hóa đơn',customers:'Khách hàng',payments:'Thu tiền',reports:'Báo cáo',imports:'Nhập / Xuất',settings:'Cài đặt',backups:'Sao lưu'}[name]||name;if(name==='reports')renderReports();if(name==='customers'&&selectedCustomer)renderProfile();}
-function confirmAction(title,message){return new Promise(resolve=>{const dialog=$('confirmDialog');$('confirmTitle').textContent=title;$('confirmText').textContent=message;const done=ok=>{dialog.close();$('confirmAccept').onclick=null;$('confirmCancel').onclick=null;resolve(ok);};$('confirmAccept').onclick=()=>done(true);$('confirmCancel').onclick=()=>done(false);dialog.oncancel=e=>{e.preventDefault();done(false);};dialog.showModal();});}
-function table(headers,rows){return `<div class="table-wrap"><table><thead><tr>${headers.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${headers.length}" class="empty">Chưa có dữ liệu.</td></tr>`}</tbody></table></div>`;}
-function metric(label,value,ico,tone=''){return `<div class="metric ${tone}"><span class="metric-icon">${icon(ico)}</span><span class="metric-label">${esc(label)}</span><strong class="metric-value number">${cash(value)}</strong></div>`;}
-function drawBars(rows,small=false){const max=Math.max(1,...rows.flatMap(r=>[r.revenue,r.collected]));return `<div class="bar-chart ${small?'small':''}">${rows.map(r=>`<div class="bar-group" title="${esc(r.label)}: ${cash(r.revenue)} / ${cash(r.collected)}"><div class="bar-pair"><i class="bar revenue" style="height:${Math.max(2,100*r.revenue/max)}%"></i><i class="bar collected" style="height:${Math.max(2,100*r.collected/max)}%"></i></div><small>${esc(r.label.replace('Tháng ',''))}</small></div>`).join('')}</div><div class="chart-legend"><span><i class="legend-dot revenue"></i>Doanh thu</span><span><i class="legend-dot collected"></i>Đã thu</span></div>`;}
-async function renderDashboard(){const result=await call(()=>window.hoaDon.dashboard());if(!result)return;const current=result.current,late=state.invoices.filter(i=>i.status.startsWith('Quá hạn')).reduce((n,i)=>n+i.balance,0);$('dashboardStats').innerHTML=metric('Doanh thu tháng',current.revenue,'trending-up','primary')+metric('Đã thu tháng',current.collected,'circle-check','success')+metric('Còn nợ',current.closingDebt,'wallet','warning')+metric('Quá hạn',late,'alarm-clock','danger');$('dashboardChart').innerHTML=drawBars(result.rows);const top=state.customers.filter(c=>c.balance>0).sort((a,b)=>b.balance-a.balance).slice(0,5);$('dashboardDebtors').innerHTML=top.map(c=>`<button class="debtor-row" data-action="customer" data-id="${c.id}"><span class="avatar">${esc(c.name[0]||'?')}</span><span>${esc(c.name)}</span><strong>${cash(c.balance)}</strong></button>`).join('')||'<div class="empty">Chưa có công nợ.</div>';const end=new Date(state.today+'T00:00:00');end.setDate(end.getDate()+7);const endIso=end.toISOString().slice(0,10);$('dashboardUpcoming').innerHTML=table(['Mã HĐ','Khách hàng','Hạn thanh toán','Còn nợ'],state.invoices.filter(i=>i.balance>0&&i.due>=state.today&&i.due<=endIso).sort((a,b)=>a.due.localeCompare(b.due)).slice(0,8).map(i=>[`<button class="link" data-action="detail" data-id="${esc(i.id)}">${esc(i.id)}</button>`,esc(i.customer),vn(i.due),`<strong class="number">${cash(i.balance)}</strong>`]));}
-function addItem(x={}){const row=document.createElement('tr');row.innerHTML=`<td><input class="item-name" maxlength="200" required value="${esc(x.name||'')}"></td><td><input class="item-unit" maxlength="40" value="${esc(x.unit??'cái')}"></td><td><input class="item-qty number" type="number" min="0.001" step="any" required value="${esc(x.qty??1)}"></td><td><input class="item-price number" type="number" min="0" step="1" required value="${esc(x.price??0)}"></td><td class="number item-amount"></td><td><button type="button" class="ghost" data-action="removeItem" aria-label="Xóa mặt hàng">${icon('trash-2')}</button></td>`;$('items').append(row);calc();}
-function items(){return [...$('items').children].map(r=>({name:r.querySelector('.item-name').value,unit:r.querySelector('.item-unit').value,qty:Number(r.querySelector('.item-qty').value),price:Number(r.querySelector('.item-price').value)}));}
-function calc(){let total=0;for(const row of $('items').children){const amount=Math.round(Number(row.querySelector('.item-qty').value)*Number(row.querySelector('.item-price').value));row.querySelector('.item-amount').textContent=cash(amount);total+=amount;}$('invoiceTotal').textContent=cash(total);$('summaryCustomer').textContent=$('customer').value||'Chưa chọn';$('summaryDue').textContent=vn($('dueDate').value)||'Chưa đặt';}
-function resetForm(keep=false){const customer=keep&&selectedCustomerId?state.customers.find(c=>c.id===selectedCustomerId):null;$('invoiceForm').reset();$('items').replaceChildren();addItem();$('invoiceDate').value=state.today;editing=null;$('formTitle').textContent='Khách hàng & thông tin hóa đơn';$('cancelEdit').classList.add('hidden');selectCustomer(customer);calc();}
-function selectCustomer(c){selectedCustomerId=c?.id||null;if(c){$('customer').value=c.name;$('phone').value=c.phone||'';$('address').value=c.address||'';const invoices=state.invoices.filter(i=>i.customerId===c.id);const debt=invoices.reduce((n,i)=>n+i.balance,0),late=invoices.filter(i=>i.status.startsWith('Quá hạn')).length;$('customerHint').textContent=`${c.code||''} · ${invoices.length} hóa đơn`;$('copyLatest').classList.toggle('hidden',!invoices.length);$('customerDebtBanner').classList.toggle('hidden',!debt);$('customerDebtBanner').textContent=debt?`Khách đang còn nợ ${cash(debt)}${late?` · ${late} hóa đơn quá hạn`:''}. Bạn vẫn có thể lập hóa đơn mới.`:'';}else{$('customerHint').textContent='';$('copyLatest').classList.add('hidden');$('customerDebtBanner').classList.add('hidden');}$('customerSuggestions').classList.add('hidden');calc();}
-function suggestions(){const q=$('customer').value.trim().toLocaleLowerCase('vi');if(selectedCustomerId&&$('customer').value!==state.customers.find(c=>c.id===selectedCustomerId)?.name)selectCustomer(null);const matches=q?state.customers.filter(c=>(c.name+' '+c.phone+' '+c.code).toLocaleLowerCase('vi').includes(q)).slice(0,7):[];$('customerSuggestions').innerHTML=matches.map(c=>`<button type="button" data-action="pickCustomer" data-id="${c.id}">${esc(c.name)} <small>${esc(c.phone||c.code)}</small></button>`).join('');$('customerSuggestions').classList.toggle('hidden',!matches.length);calc();}
-function statusBadge(i){const cls=i.balance===0?'paid':i.status.startsWith('Quá hạn')?'late':i.paid?'partial':'debt';return `<span class="status ${cls}">${icon(cls==='paid'?'circle-check':cls==='late'?'triangle-alert':'clock-3')}${esc(i.status)}</span>`;}
-function renderInvoices(){const invoices=state.invoices,total=invoices.reduce((n,i)=>n+i.total,0),paid=invoices.reduce((n,i)=>n+i.paid,0);$('stats').innerHTML=metric('Tổng tiền hàng',total,'receipt','primary')+metric('Đã thu',paid,'circle-check','success')+metric('Còn phải thu',total-paid,'wallet','warning');const labels={all:'Tất cả',debt:'Còn nợ',late:'Quá hạn',paid:'Đã thanh toán'};$('invoiceChips').innerHTML=Object.entries(labels).map(([key,label])=>`<button class="chip ${$('invoiceFilter').value===key?'active':''}" data-action="filter" data-id="${key}">${label} <span>${invoices.filter(i=>key==='all'||key==='debt'&&i.balance>0||key==='late'&&i.status.startsWith('Quá hạn')||key==='paid'&&i.balance===0).length}</span></button>`).join('');const q=$('invoiceSearch').value.trim().toLocaleLowerCase('vi'),f=$('invoiceFilter').value;const visible=invoices.filter(i=>(i.id+' '+i.customer+' '+i.phone).toLocaleLowerCase('vi').includes(q)&&(f==='all'||f==='debt'&&i.balance>0||f==='late'&&i.status.startsWith('Quá hạn')||f==='paid'&&i.balance===0));$('invoiceRows').innerHTML=visible.map(i=>`<tr><td><button class="link" data-action="detail" data-id="${esc(i.id)}">${esc(i.id)}</button></td><td>${vn(i.date)}</td><td>${esc(i.customer)}<br><small>${esc(i.phone)}</small></td><td class="number">${cash(i.total)}</td><td class="number">${cash(i.paid)}</td><td class="number debt-amount">${cash(i.balance)}</td><td>${statusBadge(i)}</td><td><button class="ghost" data-action="detail" data-id="${esc(i.id)}" aria-label="Xem thao tác">${icon('ellipsis')}</button></td></tr>`).join('')||'<tr><td colspan="8" class="empty">Không có hóa đơn phù hợp. <button data-tab="create" class="link">Tạo hóa đơn</button></td></tr>';}
-function renderCustomers(){const q=$('customerSearch').value.trim().toLocaleLowerCase('vi');$('customerRows').innerHTML=state.customers.filter(c=>(c.code+' '+c.name+' '+c.phone).toLocaleLowerCase('vi').includes(q)).map(c=>`<tr><td>${esc(c.code||'')}</td><td><button class="link" data-action="customer" data-id="${c.id}">${esc(c.name)}</button></td><td>${esc(c.phone)}</td><td class="number">${cash(c.total)}</td><td class="number">${cash(c.paid)}</td><td class="number debt-amount">${cash(c.balance)}</td><td><button class="secondary" data-action="newForCustomer" data-id="${c.id}">Tạo hóa đơn mới</button></td></tr>`).join('')||'<tr><td colspan="7" class="empty">Chưa có khách hàng.</td></tr>';}
-async function renderProfile(){if(!selectedCustomer)return;const p=await call(()=>window.hoaDon.customerProfile(selectedCustomer,selectedCustomerRange.from,selectedCustomerRange.to,selectedCustomerTab));if(!p)return;const c=p.customer,s=p.summary,tabs={all:'Tất cả',invoice:'Hóa đơn',payment:'Phiếu thu',debt:'Còn nợ',late:'Quá hạn'};const max=Math.max(1,...p.aging);$('customerDetail').classList.remove('hidden');$('customerDetail').innerHTML=`<div class="card profile-head"><div class="profile-identity"><span class="avatar large">${esc(c.name[0]||'?')}</span><div><span class="eyebrow">${esc(c.code)}</span><h2>${esc(c.name)}</h2><p>${esc(c.phone||'Chưa có SĐT')} · ${esc(c.address||'Chưa có địa chỉ')}</p></div></div><div class="actions"><button class="primary" data-action="newForCustomer" data-id="${c.id}">Tạo hóa đơn mới</button><button class="secondary" data-action="editCustomer" data-id="${c.id}">Sửa khách</button><button class="secondary" data-action="bulk" data-id="${c.id}">Thu tiền</button><button class="secondary" data-action="statement">Xuất đối chiếu PDF</button><button class="secondary" data-action="customerExcel">Xuất Excel</button></div></div><div class="metric-grid profile-metrics">${metric('Tổng mua',s.total,'receipt')}${metric('Đã trả',s.paid,'circle-check')}${metric('Còn nợ',s.balance,'wallet')}${metric('Hóa đơn quá hạn',s.overdueCount,'triangle-alert')}</div><div class="card"><div class="profile-facts"><span>Số hóa đơn <b>${s.invoiceCount}</b></span><span>Mua gần nhất <b>${vn(s.lastPurchase)}</b></span><span>Quá hạn lâu nhất <b>${s.oldestOverdueDays} ngày</b></span></div><h3>Tuổi nợ</h3><div class="aging">${['0–30 ngày','31–60 ngày','61–90 ngày','Trên 90 ngày'].map((name,n)=>`<div><span>${name}</span><div class="aging-track"><i class="aging-${n}" style="width:${100*p.aging[n]/max}%"></i></div><strong>${cash(p.aging[n])}</strong></div>`).join('')}</div></div><div class="card"><div class="card-head"><h2>Lịch sử giao dịch</h2><div class="actions"><label>Từ ngày <input id="customerFrom" type="date" value="${esc(selectedCustomerRange.from)}"></label><label>Đến ngày <input id="customerTo" type="date" value="${esc(selectedCustomerRange.to)}"></label></div></div><div class="chips">${Object.entries(tabs).map(([id,label])=>`<button class="chip ${selectedCustomerTab===id?'active':''}" data-action="profileTab" data-id="${id}">${label}</button>`).join('')}</div>${table(['Ngày','Loại','Mã','Hóa đơn','Phát sinh','Số dư lũy kế'],p.timeline.map(e=>[vn(e.date),e.kind==='invoice'?'<span class="status debt">Hóa đơn</span>':'<span class="status paid">Phiếu thu</span>',esc(e.id),esc(e.invoiceId),`<span class="number">${e.kind==='invoice'?'+':'−'} ${cash(e.amount)}</span>`,`<strong class="number">${cash(e.runningBalance)}</strong>`]))}</div>`;}
-function renderPayments(){const byId=new Map(state.invoices.map(i=>[i.id,i]));$('paymentRows').innerHTML=state.payments.map(p=>`<tr><td>${esc(p.id)}</td><td>${vn(p.date)}</td><td>${esc(byId.get(p.invoice)?.customer||'')}</td><td><button class="link" data-action="detail" data-id="${esc(p.invoice)}">${esc(p.invoice)}</button></td><td class="number">${cash(p.amount)}</td><td>${esc(p.method)}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">Chưa có phiếu thu.</td></tr>';}
-async function renderReports(){if(!$('reportYear').value)$('reportYear').value=state.today.slice(0,4);const value=await call(()=>window.hoaDon.reports(Number($('reportYear').value),$('reportMode').value));if(!value)return;const rows=value.rows;if(selectedPeriod===null)selectedPeriod=$('reportMode').value==='month'&&Number($('reportYear').value)===Number(state.today.slice(0,4))?Number(state.today.slice(5,7))-1:rows.length-1;selectedPeriod=Math.min(selectedPeriod,rows.length-1);$('reportRows').innerHTML=rows.map((r,n)=>`<tr class="${n===selectedPeriod?'report-selected':''}"><td><button class="link" data-action="period" data-id="${n}">${esc(r.label)}</button></td><td class="number">${r.invoiceCount}</td><td class="number">${cash(r.revenue)}</td><td class="number">${cash(r.collected)}</td><td class="number debt-amount">${cash(r.closingDebt)}</td><td class="number">${r.collectRate.toFixed(1)}%</td></tr>`).join('');const r=rows[selectedPeriod];$('reportStats').innerHTML=metric('Doanh thu',r.revenue,'trending-up')+metric('Đã thu kỳ',r.collected,'circle-check')+metric('Nợ cuối kỳ',r.closingDebt,'wallet');$('reportChart').innerHTML=drawBars(rows,true);$('reportDetail').innerHTML=`<h2>${esc(r.label)} · Chi tiết</h2>${table(['Mã HĐ','Ngày','Khách hàng','Tổng tiền'],r.invoices.map(i=>[esc(i.id),vn(i.date),esc(i.customer),`<span class="number">${cash(i.total)}</span>`]))}`;}
-function renderSettings(){if(!state.dbPath)return;$('dbPath').textContent=state.dbPath;$('exportPath').textContent=state.settings.exportFolder||state.dataFolder+'\\exports';for(const k of ['sellerName','sellerAddress','sellerPhone','sellerNote','invoicePrefix'])$(k).value=state.settings[k]||'';$('darkMode').checked=state.settings.darkMode==='true';document.documentElement.dataset.theme=$('darkMode').checked?'dark':'light';$('logoPath').textContent=state.settings.sellerLogo||'';}
-function render(){if(!state.today)return;$('today').textContent=vn(state.today);renderDashboard();renderInvoices();renderCustomers();renderPayments();renderReports();renderSettings();if(window.importUI)window.importUI.renderHistory();}
-function detail(id){const i=state.invoices.find(x=>x.id===id);if(!i)return;const payments=state.payments.filter(p=>p.invoice===id);$('detailBody').innerHTML=`<div class="detail-grid"><p><small>Mã hóa đơn</small><b>${esc(i.id)}</b></p><p><small>Ngày lập / Hạn trả</small>${vn(i.date)} / ${vn(i.due)}</p><p><small>Khách hàng</small>${esc(i.customer)}</p><p><small>Điện thoại / địa chỉ</small>${esc(i.phone)} · ${esc(i.address)}</p></div>${table(['Mặt hàng','Đơn vị','Số lượng','Đơn giá','Thành tiền'],i.items.map(x=>[esc(x.name),esc(x.unit),esc(x.qty),cash(x.price),cash(x.amount)]))}<p class="totals">Tổng ${cash(i.total)} · Đã thu ${cash(i.paid)} · Còn nợ ${cash(i.balance)}</p><p>Ghi chú: ${esc(i.note)}</p><h3>Phiếu thu</h3>${table(['Ngày','Số tiền','Phương thức','Ghi chú'],payments.map(p=>[vn(p.date),cash(p.amount),esc(p.method),esc(p.note)]))}`;$('detailActions').innerHTML=`<button class="secondary" data-action="print" data-id="${esc(id)}">In</button><button class="secondary" data-action="pdf" data-id="${esc(id)}">Xuất PDF</button>${i.balance?`<button class="primary" data-action="pay" data-id="${esc(id)}">Thu tiền</button>`:''}${payments.length?'':`<button class="secondary" data-action="edit" data-id="${esc(id)}">Sửa</button><button class="danger" data-action="delete" data-id="${esc(id)}">Xóa</button>`}`;$('detailDialog').showModal();}
-function newForCustomer(id){const c=state.customers.find(x=>x.id===Number(id));if(!c)return;resetForm();selectCustomer(c);tab('create');$('invoiceDate').focus();}
-function openCustomerDialog(id=null){editingCustomerId=id;const c=state.customers.find(x=>x.id===id);$('customerDialogTitle').textContent=c?'Sửa khách hàng':'Thêm khách hàng';$('customerForm').reset();$('editCustomerName').value=c?.name||'';$('editCustomerPhone').value=c?.phone||'';$('editCustomerAddress').value=c?.address||'';$('editCustomerNote').value=c?.note||'';$('customerDialog').showModal();$('editCustomerName').focus();}
-async function action(el){const a=el.dataset.action,id=el.dataset.id;if(a==='removeItem'){if($('items').children.length>1){el.closest('tr').remove();calc();}return;}if(a==='filter'){$('invoiceFilter').value=id;renderInvoices();return;}if(a==='pickCustomer'){selectCustomer(state.customers.find(c=>c.id===Number(id)));return;}if(a==='newForCustomer'){newForCustomer(id);return;}if(a==='editCustomer'){openCustomerDialog(Number(id));return;}if(a==='customer'){selectedCustomer=Number(id);tab('customers');await renderProfile();$('customerDetail').scrollIntoView({behavior:'smooth'});return;}if(a==='profileTab'){selectedCustomerTab=id;renderProfile();return;}if(a==='period'){selectedPeriod=Number(id);renderReports();return;}if(a==='detail'){detail(id);return;}if(a==='pay'){const i=state.invoices.find(x=>x.id===id);paying=id;$('paymentForm').reset();$('paymentTitle').textContent=`${i.customer} · ${id} · Còn nợ ${cash(i.balance)}`;$('paymentDate').value=state.today;$('paymentDate').min=i.date;$('paymentAmount').value=i.balance;$('paymentAmount').max=i.balance;$('paymentError').textContent='';$('detailDialog').close();$('paymentDialog').showModal();return;}if(a==='edit'){const i=state.invoices.find(x=>x.id===id);editing={id,revision:i.revision};selectedCustomerId=i.customerId;for(const [field,value] of [['customer',i.customer],['phone',i.phone],['address',i.address],['invoiceDate',i.date],['dueDate',i.due],['invoiceNote',i.note]])$(field).value=value;$('items').replaceChildren();i.items.forEach(addItem);$('formTitle').textContent=`Sửa hóa đơn ${id}`;$('cancelEdit').classList.remove('hidden');$('detailDialog').close();tab('create');calc();return;}if(a==='delete'){if(!await confirmAction('Xóa hóa đơn',`Xóa vĩnh viễn hóa đơn ${id}?`))return;const i=state.invoices.find(x=>x.id===id),next=await call(()=>window.hoaDon.deleteInvoice({id,revision:i.revision}),'Đã xóa hóa đơn.');if(next){state=next;$('detailDialog').close();render();}return;}if(a==='pdf'||a==='print'){if(!await confirmAction('Thông tin khách hàng','Tài liệu có số điện thoại khách hàng. Xác nhận tiếp tục?'))return;const path=await call(()=>window.hoaDon[a]('invoice',{id}));if(path)toast(path);return;}if(a==='statement'||a==='customerExcel'){if(!await confirmAction('Thông tin khách hàng','Tài liệu có số điện thoại khách hàng. Xác nhận tiếp tục?'))return;const range=selectedCustomerRange;const path=await call(()=>a==='statement'?window.hoaDon.pdf('statement',{customerId:selectedCustomer,...range}):window.hoaDon.excel({customerId:selectedCustomer,...range}));if(path)toast(`Đã xuất: ${path}`);return;}if(a==='bulk'){const c=state.customers.find(x=>x.id===Number(id));$('bulkBody').innerHTML=`<p>Khách hàng: <b>${esc(c.name)}</b> · Dư nợ ${cash(c.balance)}</p><label class="field">Số tiền thu<input id="bulkAmount" type="number" min="1" max="${c.balance}" value="${c.balance}"></label><label class="field">Ngày thu<input id="bulkDate" type="date" value="${state.today}"></label><label class="field">Phương thức<select id="bulkMethod"><option>Tiền mặt</option><option>Chuyển khoản</option><option>Khác</option></select></label><div id="bulkPreview"></div>`;$('bulkActions').innerHTML='<button class="secondary" data-action="previewBulk">Xem phân bổ</button>';selectedCustomer=Number(id);$('bulkDialog').showModal();return;}if(a==='previewBulk'){const plan=await call(()=>window.hoaDon.planBulkPayment(selectedCustomer,Number($('bulkAmount').value)));if(!plan)return;$('bulkPreview').innerHTML=table(['Hóa đơn','Dư nợ','Phân bổ'],plan.allocations.map(x=>[esc(x.invoice),cash(x.balance),`<strong>${cash(x.amount)}</strong>`]));$('bulkActions').innerHTML='<button class="primary" data-action="saveBulk">Xác nhận thu tiền</button>';$('bulkDialog').dataset.plan=JSON.stringify(plan);return;}if(a==='saveBulk'){const plan=JSON.parse($('bulkDialog').dataset.plan||'null');if(!plan)return;const result=await call(()=>window.hoaDon.addBulkPayment({...plan,date:$('bulkDate').value,method:$('bulkMethod').value,allocations:plan.allocations}),'Đã thu tiền và phân bổ vào hóa đơn cũ nhất.');if(result){state=result.state;$('bulkDialog').close();render();renderProfile();}return;}}
-document.addEventListener('click',e=>{const el=e.target.closest('[data-action]');if(el){action(el);return;}const t=e.target.closest('[data-tab]');if(t){tab(t.dataset.tab);return;}const c=e.target.closest('[data-close]');if(c){$(c.dataset.close).close();return;}const o=e.target.closest('[data-open]');if(o)call(()=>window.hoaDon.openFolder(o.dataset.open));});
-$('sidebarToggle').onclick=()=>document.body.classList.toggle('sidebar-collapsed');$('quickCreate').onclick=()=>{resetForm();tab('create');$('customer').focus();};$('globalSearch').oninput=e=>{tab('invoices');$('invoiceSearch').value=e.target.value;renderInvoices();};$('addItem').onclick=()=>addItem();$('items').oninput=calc;$('customer').oninput=suggestions;$('customer').onfocus=suggestions;$('phone').oninput=()=>{if(selectedCustomerId){selectedCustomerId=null;$('copyLatest').classList.add('hidden');}};$('dueDate').onchange=calc;$('copyLatest').onclick=()=>{const i=state.invoices.filter(x=>x.customerId===selectedCustomerId).sort((a,b)=>b.date.localeCompare(a.date))[0];if(!i)return;$('items').replaceChildren();i.items.forEach(addItem);$('invoiceNote').value=i.note;$('dueDate').value='';calc();toast(`Đã sao chép mặt hàng từ ${i.id}.`);};$('cancelEdit').onclick=()=>resetForm();document.querySelectorAll('[data-submit]').forEach(b=>b.onclick=()=>submitMode=b.dataset.submit);
-$('invoiceForm').onsubmit=async e=>{e.preventDefault();if(busy)return;const input={customer:$('customer').value,phone:$('phone').value,address:$('address').value,date:$('invoiceDate').value,due:$('dueDate').value,note:$('invoiceNote').value,items:items(),...(editing||{})};if(selectedCustomerId)input.customerId=selectedCustomerId;else{const digits=input.phone.replace(/\D/g,'').replace(/^84(?=\d{9,})/,'0');const match=state.customers.find(c=>c.normalizedPhone&&c.normalizedPhone===digits);if(match){const use=await confirmAction('Số điện thoại đã có',`Số này thuộc khách ${match.name}. Chọn Xác nhận để dùng khách cũ; chọn Hủy để tạo mới.`);if(use){input.customerId=match.id;input.customer=match.name;input.phone=match.phone;input.address=match.address;}else input.forceNew=true;}else if(state.customers.some(c=>c.name.trim().toLocaleLowerCase('vi')===input.customer.trim().toLocaleLowerCase('vi'))){if(!await confirmAction('Khách trùng tên','Đã có khách cùng tên với số điện thoại khác. Xác nhận tạo khách mới?'))return;input.acceptSimilar=true;}}setBusy(true);const result=await call(()=>editing?window.hoaDon.updateInvoice(input):window.hoaDon.createInvoice(input));setBusy(false);if(result){state=result.state;const keep=submitMode==='continue';selectedCustomerId=keep?result.state.invoices.find(i=>i.id===result.id)?.customerId:null;resetForm(keep);render();toast(`Đã lưu hóa đơn ${result.id}.`);if(!keep)tab('invoices');}};
-$('paymentForm').onsubmit=async e=>{e.preventDefault();const inv=state.invoices.find(i=>i.id===paying),amount=Number($('paymentAmount').value);if(amount<=0||amount>inv.balance){$('paymentError').textContent='Số tiền phải lớn hơn 0 và không vượt dư nợ.';return;}$('paymentError').textContent='';const next=await call(()=>window.hoaDon.addPayment({invoice:paying,date:$('paymentDate').value,amount,method:$('paymentMethod').value,note:$('paymentNote').value}));if(next){state=next;$('paymentDialog').close();render();if(selectedCustomer)renderProfile();toast('Đã ghi nhận thu tiền.');}};
-$('settingsForm').onsubmit=async e=>{e.preventDefault();const values=Object.fromEntries(['sellerName','sellerAddress','sellerPhone','sellerNote','invoicePrefix'].map(k=>[k,$(k).value]));const next=await call(()=>window.hoaDon.saveSettings(values));if(next){state=next;render();toast('Đã lưu cài đặt.');}};
-$('darkMode').onchange=async e=>{document.documentElement.dataset.theme=e.target.checked?'dark':'light';const next=await call(()=>window.hoaDon.saveSettings({darkMode:String(e.target.checked)}));if(next)state=next;};
-$('newCustomer').onclick=()=>openCustomerDialog();
-$('customerForm').onsubmit=async e=>{e.preventDefault();const input={name:$('editCustomerName').value,phone:$('editCustomerPhone').value,address:$('editCustomerAddress').value,note:$('editCustomerNote').value};if(editingCustomerId)input.id=editingCustomerId;else{const digits=input.phone.replace(/\D/g,'').replace(/^84(?=\d{9,})/,'0');const match=state.customers.find(c=>c.normalizedPhone&&c.normalizedPhone===digits);if(match){if(!await confirmAction('Khách đã tồn tại',`Số điện thoại này thuộc ${match.name}. Xác nhận tạo hồ sơ khách riêng?`))return;input.forceNew=true;}else if(state.customers.some(c=>c.name.trim().toLocaleLowerCase('vi')===input.name.trim().toLocaleLowerCase('vi'))){if(!await confirmAction('Khách trùng tên','Tên khách đã có. Xác nhận tạo hồ sơ riêng?'))return;input.acceptSimilar=true;}}const result=await call(()=>editingCustomerId?window.hoaDon.updateCustomer(input):window.hoaDon.createCustomer(input));if(result){state=result.state;$('customerDialog').close();render();selectedCustomer=result.id;renderProfile();toast('Đã lưu khách hàng.');}};
-$('chooseLogo').onclick=async()=>{const next=await call(()=>window.hoaDon.chooseLogo());if(next){state=next;renderSettings();toast('Đã cập nhật logo.');}};
-$('invoiceSearch').oninput=renderInvoices;$('customerSearch').oninput=renderCustomers;$('reportYear').onchange=()=>{selectedPeriod=null;renderReports();};document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{$('reportMode').value=b.dataset.mode;document.querySelectorAll('[data-mode]').forEach(x=>x.classList.toggle('selected',x===b));selectedPeriod=null;renderReports();});$('customerDetail').onchange=e=>{if(['customerFrom','customerTo'].includes(e.target.id)){selectedCustomerRange={from:$('customerFrom').value,to:$('customerTo').value};renderProfile();}};
-for(const [id,method] of [['chooseData','chooseDataFolder'],['chooseExport','chooseExportFolder']])$(id).onclick=async()=>{const next=await call(()=>window.hoaDon[method]());if(next){state=next;selectedCustomer=null;resetForm();render();toast('Đã cập nhật thư mục.');}};
-$('backup').onclick=async()=>{const path=await call(()=>window.hoaDon.backup());if(path)toast(`Đã sao lưu: ${path}`);};$('restore').onclick=async()=>{const next=await call(()=>window.hoaDon.restore());if(next){state=next;resetForm();render();toast('Đã khôi phục dữ liệu.');}};
-for(const [id,kind] of [['exportExcel','excel'],['exportCsv','csv'],['reportExcel','excel'],['paymentCsv','csv'],['exportAll','excel'],['exportInvoicesCsv','csv']])$(id).onclick=async()=>{if(!await confirmAction('Xuất dữ liệu','File xuất có thể chứa số điện thoại khách hàng. Xác nhận tiếp tục?'))return;const invoiceFilter={search:$('invoiceSearch').value,status:$('invoiceFilter').value},reportFilter={year:Number($('reportYear').value||state.today.slice(0,4)),mode:$('reportMode').value};const filter=id==='exportExcel'||id==='exportCsv'?invoiceFilter:id==='reportExcel'?reportFilter:{};const args=kind==='csv'?[id==='paymentCsv'?'payments':'invoices',filter]:[filter];const path=await call(()=>window.hoaDon[kind](...args));if(path)toast(`Đã xuất: ${path}`);};$('reportPdf').onclick=async()=>{const path=await call(()=>window.hoaDon.pdf('report',{year:Number($('reportYear').value),mode:$('reportMode').value}));if(path)toast(`Đã xuất: ${path}`);};
-document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key.toLowerCase()==='n'){e.preventDefault();resetForm();tab('create');$('customer').focus();}if(e.ctrlKey&&e.key.toLowerCase()==='f'){e.preventDefault();$('globalSearch').focus();}if(e.key==='Escape')document.querySelectorAll('dialog[open]').forEach(d=>d.close());});
-window.hoaDon.snapshot().then(s=>{state=s;resetForm();render();tab('dashboard');}).catch(e=>toast(e.message,true));
+import {
+  api,
+  bindNonnegative,
+  bindDateDisplays,
+  esc,
+  displayName,
+  money,
+  dateText,
+  icon,
+  button,
+  today,
+} from "./ui.js";
+import { shell, applyBrand } from "./shell.js";
+import { createInteractions } from "./interactions.js";
+import * as dashboard from "./pages/dashboard.js";
+import * as activity from "./pages/activity.js";
+import * as invoices from "./pages/invoices.js";
+import * as invoiceForm from "./pages/invoiceForm.js";
+import * as customers from "./pages/customers.js";
+import * as customerProfile from "./pages/customerProfile.js";
+import * as debts from "./pages/debts.js";
+import * as payments from "./pages/payments.js";
+import * as reports from "./pages/reports.js";
+import * as reportDetail from "./pages/reportDetail.js";
+import * as imports from "./pages/imports.js";
+import * as backups from "./pages/backups.js";
+import * as settings from "./pages/settings.js";
+
+const pages = {
+  dashboard,
+  activity,
+  invoices,
+  invoiceForm,
+  customers,
+  customerProfile,
+  debts,
+  payments,
+  reports,
+  reportDetail,
+  imports,
+  backups,
+  settings,
+};
+const root = document.getElementById("app");
+const state = { route: "dashboard", args: {}, busy: false, version: 0, brand: {} };
+let navigating = false;
+function activateRoute(route) {
+  const selected = { invoiceForm: "invoices", customerProfile: "customers",
+    reportDetail: "reports" }[route] || route;
+  for (const link of root.querySelectorAll(".nav-item"))
+    link.classList.toggle("active", link.dataset.route === selected);
+}
+function setBranding(settings) {
+  state.brand = { sellerName: settings.sellerName, logoData: settings.logoData };
+  applyBrand(state.brand);
+}
+let toastTimer;
+function toast(message, error = false) {
+  const box = document.getElementById("toast-root");
+  if (!box) return;
+  box.innerHTML = `<div class="toast ${error ? "error" : ""}"></div>`;
+  box.firstElementChild.textContent = message;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    if (box) box.innerHTML = "";
+  }, 4500);
+}
+const flow = createInteractions(toast);
+window.__invoiceHasPendingChanges = () => flow.isDirty() || flow.isPending();
+window.__invoiceIsSaving = () => flow.isPending();
+const ctx = {
+  api,
+  state,
+  toast,
+  modal: flow.modal,
+  closeModal: flow.closeModal,
+  confirm: flow.ask,
+  perform: flow.perform,
+  trackPage: flow.trackPage,
+  markPageDirty: flow.markPage,
+  resetPageDirty: flow.resetPage,
+  hasChanges: flow.isDirty,
+  syncSavedField: flow.syncSavedField,
+  setBranding,
+  refreshBranding: async () => setBranding(await api["settings.get"]()),
+  navigate,
+  refresh: () => navigate(state.route, state.args, { history: false, preserveScroll: true }),
+};
+async function navigate(route, args = {}, options = {}) {
+  if (!pages[route]) route = "dashboard";
+  if (navigating) return false;
+  navigating = true;
+  const previous = { route: state.route, args: state.args };
+  const scrollY = window.scrollY;
+  const page = root.querySelector("#page");
+  try {
+    if (!options.force && !(await flow.leave())) return false;
+    if (state.version && route !== state.route &&
+        (await pages[state.route].onLeave?.(ctx)) === false) return false;
+    await flow.closeModal(true);
+    if (page) page.inert = true;
+    state.route = route;
+    state.args = args;
+    const html = await pages[route].render(ctx, args);
+    if (page) {
+      const next = document.createElement("main");
+      next.id = "page";
+      next.className = page.className;
+      next.innerHTML = html;
+      page.replaceWith(next);
+      activateRoute(route);
+      const search = document.getElementById("globalSearch");
+      if (search) search.value = "";
+      document.getElementById("searchSuggestions")?.classList.add("hidden");
+    } else root.innerHTML = shell(route, html, "", state.brand);
+    flow.resetPage();
+    if (options.history !== false && state.version)
+      history.pushState({ route, args }, "", `#${route}`);
+    state.version++;
+    pages[route].bind?.(document.getElementById("page"), ctx, args);
+    window.scrollTo(0, options.preserveScroll ? scrollY : 0);
+    return true;
+  } catch (error) {
+    state.route = previous.route;
+    state.args = previous.args;
+    if (!page) {
+      root.innerHTML = shell(route,
+        '<div class="card danger"><h2>Không tải được dữ liệu</h2><p></p></div>',
+        "", state.brand);
+      root.querySelector(".card p").textContent = error.message;
+    }
+    toast(error.message, true);
+    return false;
+  } finally {
+    if (page?.isConnected) page.inert = false;
+    navigating = false;
+  }
+}
+history.replaceState({ route: "dashboard", args: {} }, "", "#dashboard");
+history.pushState({ route: "dashboard", args: {} }, "", "#dashboard");
+window.addEventListener("popstate", async (event) => {
+  const previous = { route: state.route, args: state.args };
+  const next = event.state || { route: "dashboard", args: {} };
+  if (!(await navigate(next.route, next.args, { history: false })))
+    history.pushState(previous, "", `#${previous.route}`);
+});
+window.addEventListener("beforeunload", (event) => {
+  if (window.__invoiceExitApproved) return;
+  if (!flow.isDirty() && !flow.isPending()) return;
+  event.preventDefault();
+  event.returnValue = "";
+});
+document.addEventListener("click", async (e) => {
+  const searchCustomer = e.target.closest("[data-search-customer]");
+  if (searchCustomer) {
+    navigate("customerProfile", {
+      id: Number(searchCustomer.dataset.searchCustomer),
+    });
+    return;
+  }
+  const route = e.target.closest("[data-route]");
+  if (route) {
+    e.preventDefault();
+    navigate(
+      route.dataset.route,
+      ["invoices", "payments"].includes(route.dataset.route)
+        ? { reset: true }
+        : {},
+    );
+  }
+  const theme = e.target.closest("[data-action=toggleTheme]");
+  if (theme) {
+    const next = !document.body.classList.contains("dark");
+    const outcome = await ctx.perform(theme, {
+      title: "Đổi giao diện?", message: "Lưu giao diện hiển thị mới?",
+      label: "Đổi giao diện", loading: "Đang lưu…",
+      success: "Cập nhật giao diện thành công.",
+    }, () => api["settings.update"]({ darkMode: String(next) }));
+    if (outcome.ok) {
+      document.body.classList.toggle("dark", next);
+      ctx.syncSavedField("darkMode", next);
+    }
+  }
+  if (e.target.closest("#notificationsButton")) showReminders();
+  if (!e.target.closest(".search-wrap"))
+    document.getElementById("searchSuggestions")?.classList.add("hidden");
+});
+async function showReminders() {
+  try {
+    const date = new Date(`${today()}T00:00:00Z`);
+    date.setUTCDate(date.getUTCDate() + 7);
+    const limit = date.toISOString().slice(0, 10);
+    const bills = (await api["invoices.list"]({}))
+      .filter((i) => i.balance > 0 && i.due_date <= limit)
+      .sort((a, b) => a.due_date.localeCompare(b.due_date));
+    ctx.modal(
+      `<div class="modal-head"><h2>Nhắc nợ nội bộ</h2>${button(icon("close"), "close", "icon-only white", "data-close")}</div>
+      <p class="subtitle">Hóa đơn quá hạn hoặc đến hạn trong 7 ngày tới</p>${bills.length ? bills.map((i) => `<div class="activity"><div style="flex:1"><strong>${esc(i.id)} · ${esc(i.customer_name)}</strong><div class="small muted">Hạn ${dateText(i.due_date)} · Còn ${money(i.balance)}</div></div>${button("Sao chép lời nhắc", `copy:${i.id}`, "compact")}</div>`).join("") : '<div class="empty">Không có hóa đơn cần nhắc.</div>'}`,
+      (box) =>
+        box.addEventListener("click", async (event) => {
+          const action = event.target.closest("[data-action]")?.dataset.action;
+          if (!action?.startsWith("copy:")) return;
+          const i = bills.find((x) => x.id === action.slice(5));
+          if (!i) return;
+          await api["reminders.copy"](
+            `Kính gửi ${i.customer_name}, hóa đơn ${i.id} còn ${money(i.balance)}, hạn thanh toán ${dateText(i.due_date)}. Xin vui lòng kiểm tra và thanh toán. Trân trọng.`,
+          );
+          toast("Đã sao chép lời nhắc.");
+        }),
+    );
+  } catch (error) {
+    toast(error.message, true);
+  }
+}
+document.addEventListener("keydown", (e) => {
+  if (e.ctrlKey && e.key.toLowerCase() === "k") {
+    e.preventDefault();
+    document.getElementById("globalSearch")?.focus();
+  }
+  if (e.key === "Escape") {
+    if (flow.hasConfirm()) flow.cancelConfirm();
+    else flow.closeModal();
+    document.getElementById("searchSuggestions")?.classList.add("hidden");
+    document.getElementById("monthPopover")?.classList.add("hidden");
+    document
+      .getElementById("monthToggle")
+      ?.setAttribute("aria-expanded", "false");
+  }
+  if (
+    e.key === "Enter" &&
+    e.target.id === "globalSearch" &&
+    e.target.value.trim()
+  ) {
+    e.preventDefault();
+    navigate("invoices", { search: e.target.value.trim() });
+  }
+});
+let searchTimer = 0;
+document.addEventListener("input", (e) => {
+  if (e.target.id !== "globalSearch") return;
+  clearTimeout(searchTimer);
+  const query = e.target.value.trim(),
+    panel = document.getElementById("searchSuggestions");
+  if (!query) {
+    panel.classList.add("hidden");
+    return;
+  }
+  searchTimer = setTimeout(async () => {
+    try {
+      const customers = (await api["customers.list"](query)).slice(0, 6);
+      if (
+        !panel.isConnected ||
+        document.getElementById("globalSearch")?.value.trim() !== query
+      )
+        return;
+      panel.innerHTML = `<div class="search-caption">Khách hàng</div>${customers.map((c) => `<button type="button" data-search-customer="${c.id}"><strong>${esc(displayName(c.name))}</strong><span>${esc(c.code)}${c.phone ? ` · ${esc(c.phone)}` : ""}</span></button>`).join("") || '<div class="search-empty">Không tìm thấy khách hàng</div>'}<div class="search-hint">Nhấn Enter để tìm hóa đơn</div>`;
+      panel.classList.remove("hidden");
+    } catch (error) {
+      toast(error.message, true);
+    }
+  }, 150);
+});
+bindNonnegative();
+bindDateDisplays();
+async function start() {
+  try {
+    const s = await api["settings.get"]();
+    setBranding(s);
+    if (s.darkMode === "true") document.body.classList.add("dark");
+    document.body.dataset.fontSize = [13, 14, 15].includes(Number(s.fontSize))
+      ? s.fontSize
+      : "14";
+  } catch (error) {
+    toast(`Không tải được cài đặt: ${error.message}`, true);
+  }
+  await navigate("dashboard");
+  await document.fonts.ready;
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  await api["app.ready"]();
+}
+start().catch(async (error) => {
+  toast(`Không mở được ứng dụng: ${error.message}`, true);
+  await api["app.ready"]().catch(() => {});
+});

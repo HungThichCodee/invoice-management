@@ -1,0 +1,165 @@
+.customer-head {
+  margin-bottom: 15px;
+}
+.customer-kpis {
+  gap: 12px;
+}
+.customer-kpi {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 126px;
+  padding: 17px;
+}
+.customer-kpi .metric {
+  font-size: 21px;
+  white-space: nowrap;
+  margin: 7px 0;
+}
+.customer-kpi .metric-label {
+  color: var(--text);
+  font-weight: 600;
+}
+.customer-kpi .metric-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  margin: 0;
+  flex: none;
+}
+.customer-kpi .metric-icon .icon {
+  font-size: 21px;
+}
+.customer-kpi .small {
+  font-size: 10px;
+}
+.customer-filter-card {
+  padding: 15px;
+  margin-bottom: 14px;
+}
+.customer-filters {
+  display: grid;
+  grid-template-columns: auto minmax(220px, 1fr) minmax(165px, 0.65fr) minmax(
+      145px,
+      0.6fr
+    );
+  align-items: center;
+  gap: 9px;
+}
+.customer-tabs {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.customer-tabs .invoice-tab {
+  min-height: 36px;
+  padding: 6px 9px;
+}
+.customer-table-card {
+  padding: 0;
+  overflow: hidden;
+}
+.customer-table {
+  min-width: 1110px;
+}
+.customer-table th,
+.customer-table td {
+  padding: 13px 10px;
+}
+.customer-table th:first-child,
+.customer-table td:first-child {
+  padding-left: 17px;
+}
+.customer-table td:nth-child(2) {
+  min-width: 220px;
+}
+.customer-table td:nth-child(2) a {
+  color: var(--text);
+}
+.customer-table td:nth-child(2) a:hover {
+  color: var(--primary);
+}
+.customer-code {
+  display: inline-block;
+  border-radius: 5px;
+  padding: 3px 5px;
+  background: var(--pale);
+  color: var(--blue);
+  font-weight: 700;
+}
+.customer-identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.customer-identity > span:last-child {
+  display: grid;
+  gap: 3px;
+}
+.customer-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #dfe7ff;
+  color: #1d4ed8;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex: none;
+}
+.customer-bill-count {
+  display: inline-block;
+  border-radius: 7px;
+  background: var(--pale);
+  padding: 5px 7px;
+  font-weight: 600;
+  font-size: 11px;
+}
+.customer-states {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 140px;
+}
+.customer-state {
+  border-radius: 15px;
+  padding: 3px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.customer-state.paid {
+  background: #e8f8ee;
+  color: #15803d;
+}
+.customer-state.partial {
+  background: #eaf1ff;
+  color: #1d4ed8;
+}
+.customer-state.overdue {
+  background: #fdecec;
+  color: #b42318;
+}
+@media (max-width: 1300px) {
+  .customer-filters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .customer-tabs {
+    grid-column: 1/-1;
+  }
+  .customer-kpi .metric {
+    font-size: 18px;
+  }
+}
+@media (max-width: 900px) {
+  .customer-filters {
+    grid-template-columns: 1fr;
+  }
+  .customer-tabs {
+    grid-column: auto;
+  }
+  .customer-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

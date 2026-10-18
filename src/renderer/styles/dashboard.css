@@ -1,0 +1,226 @@
+.dashboard-head {
+  margin-bottom: 16px;
+}
+.dashboard-head .page-actions {
+  gap: 7px;
+}
+.dashboard-metrics {
+  gap: 12px;
+}
+.metric-card {
+  width: 100%;
+  min-height: 135px;
+  padding: 16px;
+  text-align: left;
+  transition:
+    box-shadow 0.15s,
+    transform 0.15s;
+}
+.metric-card:hover,
+.linked-row:hover,
+.due-main:hover {
+  box-shadow: 0 5px 18px #1b3f751c;
+  transform: translateY(-1px);
+}
+.metric-card .metric {
+  font-size: 23px;
+  white-space: nowrap;
+}
+.metric-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 13px;
+}
+.metric-card .metric-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  margin: 0;
+  flex: none;
+}
+.metric-card .metric-icon .icon {
+  font-size: 19px;
+}
+.metric-card .metric-label {
+  font-weight: 600;
+  margin: 0;
+  color: var(--text);
+}
+.metric-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.metric-scope {
+  flex: none;
+  border-radius: 6px;
+  padding: 3px 5px;
+  background: var(--pale);
+  color: var(--muted);
+}
+.dashboard-panels {
+  align-items: start;
+  gap: 12px;
+}
+.dashboard-panels .card {
+  padding: 17px;
+}
+.dashboard-panels .card-head {
+  margin-bottom: 10px;
+}
+.dashboard-panels h2 {
+  font-size: 16px;
+}
+.chart-card > .button,
+.debt-card > .button,
+.due-card > .button,
+.activity-card > .button {
+  margin-top: 13px;
+}
+.linked-row {
+  border: 0;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  align-items: center;
+  cursor: pointer;
+  color: var(--text);
+  padding: 9px 2px;
+}
+.linked-row > span:first-child {
+  display: grid;
+  gap: 3px;
+  flex: 1;
+}
+.linked-row > .icon {
+  color: var(--muted);
+  font-size: 17px;
+}
+.debt-card .empty,
+.due-card .empty,
+.activity-card .empty {
+  padding: 25px 12px;
+}
+.due-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid var(--line);
+  padding: 9px 0;
+}
+.due-main {
+  display: grid;
+  gap: 3px;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  padding: 5px;
+  border-radius: 7px;
+}
+.due-actions {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.due-actions .button {
+  font-size: 10px;
+}
+.activity {
+  align-items: center;
+}
+.activity-icon {
+  width: 29px;
+  height: 29px;
+  border-radius: 8px;
+  background: var(--pale);
+  color: var(--primary);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.activity-icon .icon {
+  font-size: 18px;
+}
+.activity-list {
+  max-width: 780px;
+}
+.activity-list .activity {
+  padding: 12px 4px;
+}
+.month-picker {
+  position: relative;
+}
+.month-picker #monthToggle {
+  min-width: 155px;
+}
+.month-popover {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0;
+  z-index: 30;
+  width: 254px;
+  padding: 12px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 15px 35px #17203325;
+}
+.month-year {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.month-year button {
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  padding: 3px;
+}
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+.month-grid button {
+  border: 0;
+  border-radius: 7px;
+  background: var(--pale);
+  color: var(--text);
+  padding: 8px 2px;
+  font-size: 11px;
+}
+.month-grid button:hover,
+.month-grid button.active {
+  background: var(--primary);
+  color: white;
+}
+@media (max-width: 1250px) {
+  .dashboard-head {
+    display: block;
+  }
+  .dashboard-head .page-actions {
+    margin-top: 10px;
+    justify-content: flex-start;
+  }
+  .metric-card .metric {
+    font-size: 21px;
+  }
+}
+@media (max-width: 900px) {
+  .dashboard-panels .col2 {
+    grid-column: auto;
+  }
+  .due-row {
+    display: block;
+  }
+}

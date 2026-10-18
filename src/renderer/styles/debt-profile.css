@@ -1,0 +1,150 @@
+.drawer-overlay {
+  display: flex;
+  justify-content: flex-end;
+  align-items: stretch;
+  padding: 0;
+  backdrop-filter: blur(3px);
+}
+.debt-drawer {
+  width: min(540px, 100%);
+  height: 100vh;
+  max-height: none;
+  border-radius: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.debt-profile-head {
+  position: relative;
+  padding: 22px 26px 19px;
+  border-bottom: 1px solid var(--line);
+}
+.debt-profile-head h2 {
+  margin: 5px 40px 5px 0;
+}
+.debt-profile-head > .button {
+  position: absolute;
+  right: 20px;
+  top: 19px;
+}
+.debt-profile-overline {
+  color: var(--red);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+}
+.debt-profile-body {
+  flex: 1;
+  overflow: auto;
+  padding: 20px 23px;
+}
+.debt-profile-body h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 22px 0 14px;
+}
+.debt-profile-body h3 .icon {
+  color: var(--primary);
+}
+.debt-profile-summary {
+  border-radius: 16px;
+  background: #fff1f1;
+  padding: 17px 18px;
+  color: var(--text);
+}
+.dark .debt-profile-summary {
+  background: #4b3037;
+}
+.debt-profile-summary > .between:first-child {
+  font-weight: 600;
+  font-size: 11px;
+}
+.debt-profile-total {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--red);
+  margin: 9px 0 13px;
+}
+.debt-profile-overdue {
+  border-top: 1px solid #dfc5c5;
+  padding-top: 12px;
+  font-size: 11px;
+}
+.debt-profile-invoice {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  padding: 16px;
+  margin-bottom: 13px;
+}
+.debt-profile-invoice > .between:first-child {
+  gap: 12px;
+}
+.debt-profile-invoice > .small {
+  margin: 8px 0 13px;
+}
+.debt-profile-values {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  background: var(--white);
+  border-radius: 10px;
+  padding: 11px;
+}
+.debt-profile-values > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.debt-profile-values span {
+  font-size: 10px;
+  color: var(--muted);
+}
+.debt-profile-values strong {
+  font-size: 11px;
+  white-space: nowrap;
+}
+.debt-profile-actions {
+  gap: 9px;
+  margin-top: 14px;
+}
+.debt-profile-actions > span {
+  flex: 1;
+}
+.debt-profile-note {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  border-radius: 10px;
+  background: var(--pale);
+  padding: 12px;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 20px;
+}
+.debt-profile-note .icon {
+  color: var(--primary);
+}
+.debt-profile-footer {
+  display: grid;
+  gap: 8px;
+  padding: 16px 22px;
+  border-top: 1px solid var(--line);
+  background: var(--white);
+}
+.debt-profile-footer .button {
+  min-height: 40px;
+}
+@media (max-width: 600px) {
+  .debt-profile-values {
+    grid-template-columns: 1fr 1fr;
+  }
+  .debt-profile-actions {
+    display: block;
+  }
+  .debt-profile-actions .button {
+    margin-top: 9px;
+  }
+}

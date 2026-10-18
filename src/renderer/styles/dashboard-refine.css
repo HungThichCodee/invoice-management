@@ -1,0 +1,217 @@
+.dashboard-metrics .metric-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 218px;
+  padding: 0;
+  overflow: hidden;
+}
+.dashboard-metrics .metric-top {
+  justify-content: space-between;
+  margin: 0;
+  padding: 20px 20px 0;
+}
+.dashboard-metrics .metric-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+}
+.dashboard-metrics .metric-icon .icon {
+  font-size: 26px;
+}
+.dashboard-metrics .metric-trend {
+  border-radius: 999px;
+  background: var(--pale);
+  color: var(--green);
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.dashboard-metrics .metric-card.danger .metric-trend {
+  background: #f5cdd0;
+  color: #9f1f20;
+}
+.dashboard-metrics .metric-label {
+  padding: 0 20px;
+  margin: 17px 0 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.dashboard-metrics .metric {
+  padding: 0 20px 15px;
+  font-size: clamp(18px, 1.65vw, 26px);
+  line-height: 1.2;
+}
+.dashboard-metrics .metric-bottom {
+  margin: auto 0 0;
+  min-height: 47px;
+  padding: 10px 20px;
+  background: var(--pale);
+  font-size: 11px;
+}
+.dashboard-metrics .metric-card.danger .metric-bottom {
+  background: #fbdfe2;
+  color: #a12227;
+}
+.dashboard-panels .chart-card,
+.dashboard-panels .debt-card {
+  min-height: 515px;
+}
+.dashboard-panels .chart-card {
+  display: flex;
+  flex-direction: column;
+}
+.dashboard-panels .chart-card .chart-wrap {
+  height: 320px;
+  margin-top: 22px;
+}
+.dashboard-panels .chart-card .chart-axis,
+.dashboard-panels .chart-card .chart-plot {
+  height: 290px;
+}
+.dashboard-panels .chart-card .chart-axis {
+  font-size: 11px;
+}
+.dashboard-panels .chart-card .chart-plot .bar-label {
+  padding-top: 9px;
+}
+.chart-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  color: var(--muted);
+  font-size: 12px;
+}
+.chart-footer > span {
+  color: var(--green);
+}
+.chart-footer .button {
+  margin: 0;
+}
+.dashboard-panels .debt-card {
+  display: flex;
+  flex-direction: column;
+}
+.debt-card .card-head > .icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--pale);
+  color: var(--muted);
+}
+.debtor-row {
+  display: grid;
+  gap: 7px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  padding: 11px 0;
+}
+.debtor-row:hover {
+  background: var(--pale);
+  border-radius: 8px;
+}
+.debtor-line,
+.debtor-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 10px;
+}
+.debtor-line strong:first-child {
+  max-width: 58%;
+  font-size: 12px;
+}
+.debtor-line strong:last-child {
+  text-align: right;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.debtor-meta {
+  color: var(--muted);
+  font-size: 11px;
+}
+.debtor-meta span:first-child {
+  color: var(--red);
+}
+.debtor-track {
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #e0e5fa;
+}
+.debtor-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+.debt-card > .button {
+  margin-top: auto;
+}
+.dashboard-panels .due-row {
+  border: 0;
+  border-radius: 13px;
+  background: var(--pale);
+  padding: 14px;
+  margin: 10px 0;
+}
+.dashboard-panels .due-row.overdue {
+  background: #fff1f0;
+}
+.due-symbol {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: #dfe7ff;
+  color: var(--primary);
+}
+.due-row.overdue .due-symbol {
+  background: #ffdcd9;
+  color: #b42318;
+}
+.due-main strong {
+  color: var(--primary);
+}
+.due-main strong span {
+  color: var(--text);
+  font-weight: 600;
+}
+.due-row.overdue .due-main strong {
+  color: var(--red);
+}
+.dark .dashboard-panels .due-row.overdue {
+  background: #482c34;
+}
+.dark .dashboard-metrics .metric-card.danger .metric-bottom {
+  background: #4b3038;
+  color: #ffd6d4;
+}
+@media (max-width: 1250px) {
+  .dashboard-metrics .metric {
+    font-size: 19px;
+  }
+  .dashboard-panels .chart-card,
+  .dashboard-panels .debt-card {
+    min-height: 470px;
+  }
+}
+@media (max-width: 900px) {
+  .dashboard-panels .due-row {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .dashboard-panels .due-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

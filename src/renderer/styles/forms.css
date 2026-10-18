@@ -1,0 +1,185 @@
+.field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.field label {
+  font-weight: 600;
+  font-size: 12px;
+}
+.field input,
+.field textarea,
+.field select,
+.input {
+  border: 1px solid #d9e0ee;
+  background: #f2f3ff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  width: 100%;
+  color: var(--text);
+  outline: none;
+  min-height: 40px;
+}
+.date-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid #d9e0ee;
+  background: #f2f3ff;
+  border-radius: 10px;
+  padding: 9px 12px;
+  min-height: 40px;
+  color: var(--text);
+}
+.date-field:focus-within {
+  border-color: #2563eb;
+  background: var(--white);
+  box-shadow: 0 0 0 3px #2563eb22;
+}
+.date-field > .icon {
+  font-size: 18px;
+  color: var(--text);
+}
+.date-field input[type="date"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  opacity: 0;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+}
+.field textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+.field input:focus,
+.field textarea:focus,
+.field select:focus,
+.input:focus {
+  border-color: #2563eb;
+  background: var(--white);
+  box-shadow: 0 0 0 3px #2563eb22;
+}
+.field input[readonly] {
+  color: #68758a;
+}
+.fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+.fields.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.field.full {
+  grid-column: 1/-1;
+}
+.form-section {
+  margin-bottom: 18px;
+}
+.form-section h2 {
+  font-size: 18px;
+  margin-bottom: 18px;
+}
+.line-item {
+  display: grid;
+  grid-template-columns: 2.2fr 0.7fr 0.8fr 1fr 1fr auto;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 9px;
+}
+.line-item .field input,
+.line-item .field select {
+  min-width: 0;
+}
+.line-item .delete {
+  margin-bottom: 2px;
+}
+.form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.filterbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.filterbar input,
+.filterbar select {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 7px 11px;
+  background: var(--white);
+  color: var(--text);
+}
+.filterbar input[type="search"] {
+  min-width: 250px;
+}
+.numeric {
+  font-variant-numeric: tabular-nums;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.help {
+  font-size: 11px;
+  color: var(--muted);
+}
+.error-text {
+  color: #b42318;
+  font-size: 11px;
+}
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.input-group .unit {
+  color: var(--muted);
+  font-weight: 700;
+}
+.stepper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 15px 0;
+}
+.step {
+  border-radius: 99px;
+  background: #e8edff;
+  color: #5f6a82;
+  padding: 7px 11px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.step.active {
+  background: #2563eb;
+  color: white;
+}
+@media (max-width: 1100px) {
+  .line-item {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+  .line-item .delete {
+    align-self: center;
+  }
+}
+@media (max-width: 900px) {
+  .fields,
+  .fields.three {
+    grid-template-columns: 1fr;
+  }
+}
